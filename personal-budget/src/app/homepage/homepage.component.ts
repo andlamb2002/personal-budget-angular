@@ -1,8 +1,8 @@
 import { Component, OnInit, PLATFORM_ID, Inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Chart } from 'chart.js/auto';
 import { isPlatformBrowser } from '@angular/common';
 import * as d3 from 'd3';
+import { DataService } from '../data.service';
 
 @Component({
   selector: 'pb-homepage',
@@ -39,7 +39,10 @@ export class HomepageComponent implements OnInit {
   private radius = Math.min(this.width, this.height) / 2 - this.margin;
   private colors: d3.ScaleOrdinal<string, string>;
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object, private http: HttpClient) {
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private dataService: DataService
+  ) {
     this.colors = d3.scaleOrdinal<string, string>();
   }
 
@@ -58,12 +61,11 @@ export class HomepageComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.http.get<any>("http://localhost:3000/budget")
-      .subscribe((res: any) => {
-        this.dataSource.datasets[0].data = res.myBudget.map((item: any) => item.budget);
-        this.dataSource.labels = res.myBudget.map((item: any) => item.title);
-        this.createChart();
-      });
+    this.dataService.getData().subscribe((data: any) => {
+      this.dataSource.datasets[0].data = data.myBudget.map((item: any) => item.budget);
+      this.dataSource.labels = data.myBudget.map((item: any) => item.title);
+      this.createChart();
+    });
 
     if (isPlatformBrowser(this.platformId)) {
       this.createSvg();
